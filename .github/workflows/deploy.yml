@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    name: Build (and optionally publish)
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -59,3 +59,15 @@ jobs:
         if: ${{ always() }}
         run: |
           echo "GHCR_TAGS=${GHCR_TAGS:-(not set)}"
+
+      - name: Tailscale setup
+        uses: tailscale/github-action@v4.1.1
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          ping: p1.tail37b43f.ts.net
+          tags: tag:rabbithole
+
+      - name: Begin rollout
+        run: |
+          curl p1.tail37b43f.ts.net:80
