@@ -6,4 +6,4 @@
 
 # Build container
 
-    docker build . --tag rabbithole:latest   
+    docker build . --tag rabbithole:latest && docker run --publish 80:80 rabbithole:latest  
