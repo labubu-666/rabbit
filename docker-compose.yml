@@ -1,22 +1,26 @@
 services:
-  rabbithole:
-    image: ghcr.io/labubu-666/rabbithole:latest
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    ports:
-      - "38311:80"
-  watchtower:
-    command: --debug --http-api-update
-    environment:
-      - WATCHTOWER_DEBUG=true
-      - WATCHTOWER_HTTP_API_TOKEN=mytoken
-      - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_LABEL_ENABLE=true
-    image: nickfedor/watchtower:1.14.1
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
-    ports:
-      - "18181:8080"
+  builder:
+    build:
+      context: .
+      target: builder
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /home/ken/.docker/config.json:/config.json
+      - ./pages:/app/pages
+      - ./src:/app/src
+      - ./dist:/app/dist
+    command: >
+      sh -c "watchmedo shell-command
+      --patterns='*.py;*.md;*.txt'
+      --recursive
+      --command='uv run rabbithole build -p pages -d dist'"
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./dist:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - builder
