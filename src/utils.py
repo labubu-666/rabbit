@@ -6,6 +6,7 @@ from typing import Union, Dict, Tuple
 
 import yaml
 import shutil
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from src.markdown import _render_markdown
 from src.schema import Page
@@ -165,6 +166,13 @@ def build_site(
         return dist_p
     
     logger.info(f"Found {len(pages)} page(s) to build")
+    
+    template_dir = Path(__file__).parent.parent / "templates"
+    env = Environment(
+        loader=FileSystemLoader(template_dir),
+        autoescape=select_autoescape(['html', 'xml'])
+    )
+    template = env.get_template("template.html")
 
     for key, page in pages.items():
         # target path is dist/<key>.html
@@ -218,19 +226,9 @@ def build_site(
                     # fallback title
                     title = key.split("/")[-1]
 
-                template_html = f"""<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>{html_module.escape(str(title))}</title>
-</head>
-<body>
-{page.html}
-</body>
-</html>
-"""
-
-                target.write_text(template_html, encoding="utf-8")
+                # Render using Jinja2 template
+                rendered_html = template.render(title=title, content=page.html)
+                target.write_text(rendered_html, encoding="utf-8")
                 logger.info(f"  {page.source_path} -> {target}")
         except Exception as exc:
             logger.warning(
