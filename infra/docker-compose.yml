@@ -1,6 +1,6 @@
 services:
-  rabbithole:
-    image: ghcr.io/labubu-666/rabbithole:latest
+  example:
+    image: ghcr.io/labubu-666/rabbit:latest
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     ports:

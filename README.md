@@ -2,7 +2,7 @@
 
 # Quick start
 
-    uv add git+ssh://git@github.com/labubu-666/rabbithole.git@main 
+    uv add git+ssh://git@github.com/labubu-666/rabbit.git@main 
 
 # Dev
 
@@ -11,10 +11,6 @@
 # Build natively
 
     uv run rabbit build
-
-# Build container
-
-    docker build . --tag rabbithole:latest && docker run --publish 80:80 rabbithole:latest  
 
 # Serve 
 

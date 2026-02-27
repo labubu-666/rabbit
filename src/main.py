@@ -58,7 +58,7 @@ class RebuildHandler(FileSystemEventHandler):
 
 @click.group()
 def cli():
-    """rabbithole CLI entrypoint."""
+    """rabbit CLI entrypoint."""
     pass
 
 
