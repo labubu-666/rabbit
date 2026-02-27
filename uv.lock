@@ -292,7 +292,7 @@ wheels = [
 ]
 
 [[package]]
-name = "rabbithole"
+name = "rabbit"
 version = "0.0.0"
 source = { editable = "." }
 dependencies = [
