@@ -1,4 +1,4 @@
-# rabbithole
+# rabbit
 
 # Quick start
 
@@ -10,8 +10,12 @@
 
 # Build natively
 
-    uv run rabbithole build
+    uv run rabbit build
 
 # Build container
 
     docker build . --tag rabbithole:latest && docker run --publish 80:80 rabbithole:latest  
+
+# Serve 
+
+    uv run rabbit serve
