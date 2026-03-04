@@ -1,0 +1,11 @@
+# IDE
+.idea/
+
+# Project specific
+__pycache__/
+.sass-cache/
+.venv/
+dist/
+
+.env
+rabbit.iml
