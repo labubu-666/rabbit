@@ -1,13 +1,19 @@
+import sys
+
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 import click
 import logging
 import http.server
 import socketserver
 import time
-from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from src.utils import build_site
+from settings import Settings
+from build_site import build_site
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -50,7 +56,9 @@ class RebuildHandler(FileSystemEventHandler):
 
         logger.info(f"Detected change in {Path(event.src_path).resolve()}, rebuilding...")
         try:
-            build_site(self.pages_dir, self.dist_dir, self.styles_dir)
+            settings = Settings()
+            Settings.model_validate(settings)
+            build_site(self.pages_dir, self.dist_dir, self.styles_dir, settings)
             self.last_rebuild = current_time
             logger.info("Rebuild complete!")
         except Exception as exc:
@@ -75,9 +83,13 @@ def cli():
 )
 def build(pages_dir: str, dist_dir: str, styles_dir: str):
     """Build the site into the dist directory."""
+    logger.info("Loading settings.")
+    settings = Settings()
+    Settings.model_validate(settings)
+    logger.info("Loaded settings '%s'.", settings.model_dump())
     
     logger.info(f"Building site from {Path(pages_dir).resolve()} to {Path(dist_dir).resolve()}...")
-    build_site(pages_dir, dist_dir, styles_dir)
+    build_site(pages_dir, dist_dir, styles_dir, settings)
     logger.info("Build complete!")
 
 
@@ -95,15 +107,12 @@ def build(pages_dir: str, dist_dir: str, styles_dir: str):
 @click.option("--host", "-h", default="127.0.0.1", help="Host to bind to")
 def serve(pages_dir: str, dist_dir: str, styles_dir: str, port: int, host: str):
     """Serve the site and watch for changes, rebuilding when necessary."""
-    # Configure logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
+    settings = Settings()
+    Settings.model_validate(settings)
 
     # Initial build with clean flag to remove old files
     logger.info(f"Building site from {Path(pages_dir).resolve()} to {Path(dist_dir).resolve()}...")
-    build_site(pages_dir, dist_dir, styles_dir)
+    build_site(pages_dir, dist_dir, styles_dir, settings)
     logger.info("Initial build complete!")
 
     # Set up HTTP server in the dist directory
