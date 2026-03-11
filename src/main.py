@@ -123,7 +123,7 @@ def serve(pages_dir: str, dist_dir: str, styles_dir: str, port: int, host: str):
             super().__init__(*args, directory=str(dist_path), **kwargs)
 
         def translate_path(self, path):
-            """Translate URL path to filesystem path, handling /web prefix."""
+            """Translate URL path to filesystem path, handling /web prefix and .html extension."""
             # Remove /web prefix if present
             if path.startswith("/web/"):
                 path = path[4:]  # Remove '/web'
@@ -131,7 +131,15 @@ def serve(pages_dir: str, dist_dir: str, styles_dir: str, port: int, host: str):
                 path = "/"
 
             # Call parent's translate_path with modified path
-            return super().translate_path(path)
+            translated = super().translate_path(path)
+            
+            # If the path doesn't exist and doesn't have an extension, try adding .html
+            if not Path(translated).exists() and not Path(translated).suffix:
+                html_path = translated + ".html"
+                if Path(html_path).exists():
+                    return html_path
+            
+            return translated
 
         def log_message(self, format, *args):
             # Custom logging format
