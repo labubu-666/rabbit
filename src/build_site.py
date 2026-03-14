@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def build_site(
+    working_dir: Union[str, Path],
     pages_dir: Union[str, Path],
     dist_dir: Union[str, Path],
     styles_dir: Union[str, Path],
@@ -24,6 +25,7 @@ def build_site(
     POSIX relative path of the source file without extension (e.g., `de/index`).
 
     Args:
+        working_dir: Working directory to load pages from.
         pages_dir: Directory containing source pages
         dist_dir: Directory to write output files
         styles_dir: Directory containing styles
@@ -31,6 +33,8 @@ def build_site(
 
     Returns the Path to the distribution directory.
     """
+    working_dir_p = Path(working_dir)
+
     pages_dir_p = Path(pages_dir)
 
     dist_p = create_folder(dist_dir)
@@ -38,7 +42,7 @@ def build_site(
     # Compile and copy styles with cache-busting
     css_path = compile_and_copy_styles(styles_dir, dist_dir)
 
-    pages = load_pages(pages_dir_p)
+    pages = load_pages(pages_dir_p, working_dir_p)
 
     if not pages:
         logger.info("No pages found to build")

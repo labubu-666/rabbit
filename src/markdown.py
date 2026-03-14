@@ -5,11 +5,15 @@ import logging
 import sys
 import os
 
+from settings import Settings
+
+settings = Settings()
+
 logger = logging.getLogger(__name__)
 
 # Add current working directory to Python path to allow plugin discovery
 # This enables the CLI to find plugins in the directory where it's run
-cwd = os.getcwd()
+cwd = settings.working_directory or os.getcwd()
 if cwd not in sys.path:
     sys.path.insert(0, cwd)
 
@@ -71,7 +75,20 @@ def repl_inline_code(m):
     return impl(m)
 
 
-def _render_markdown(text: str) -> str:
+def _render_markdown(text: str, working_dir: str = None) -> str:
+    """Render markdown text to HTML.
+
+    Args:
+        text: The markdown text to render
+        working_dir: The working directory to use for plugin discovery.
+                     If not provided, uses current working directory.
+    """
+    # Add working directory to Python path to allow plugin discovery
+    # This enables the CLI to find plugins in the directory where it's run
+    cwd = working_dir or os.getcwd()
+    if cwd not in sys.path:
+        sys.path.insert(0, cwd)
+
     text = html_module.escape(text)
 
     # headings

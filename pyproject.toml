@@ -36,3 +36,8 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 addopts = ["-vvv"]
+
+[tool.uv.workspace]
+members = [
+    "integration-tests/wiki",
+]
