@@ -7,3 +7,4 @@ class Settings(BaseSettings):
     )
 
     language_code: str = "en"
+    working_directory: str = "."

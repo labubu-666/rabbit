@@ -22,7 +22,10 @@ logger = logging.getLogger(__name__)
 class RebuildHandler(FileSystemEventHandler):
     """File system event handler that triggers site rebuild on changes."""
 
-    def __init__(self, pages_dir: str, dist_dir: str, styles_dir: str):
+    def __init__(
+        self, working_dir: str, pages_dir: str, dist_dir: str, styles_dir: str
+    ):
+        self.working_dir = working_dir
         self.pages_dir = pages_dir
         self.dist_dir = dist_dir
         self.styles_dir = styles_dir
@@ -58,7 +61,13 @@ class RebuildHandler(FileSystemEventHandler):
         try:
             settings = Settings()
             Settings.model_validate(settings)
-            build_site(self.pages_dir, self.dist_dir, self.styles_dir, settings)
+            build_site(
+                self.working_dir,
+                self.pages_dir,
+                self.dist_dir,
+                self.styles_dir,
+                settings,
+            )
             self.last_rebuild = current_time
             logger.info("Rebuild complete!")
         except Exception as exc:
@@ -73,6 +82,9 @@ def cli():
 
 @cli.command()
 @click.option(
+    "--working-dir", "working_dir", "-w", default=".", help="Working directory"
+)
+@click.option(
     "--pages-dir", "pages_dir", "-p", default="pages", help="Path to pages directory"
 )
 @click.option(
@@ -85,7 +97,7 @@ def cli():
     default="styles",
     help="Path to styles directory",
 )
-def build(pages_dir: str, dist_dir: str, styles_dir: str):
+def build(working_dir: str, pages_dir: str, dist_dir: str, styles_dir: str):
     """Build the site into the dist directory."""
     logger.info("Loading settings.")
     settings = Settings()
@@ -95,11 +107,14 @@ def build(pages_dir: str, dist_dir: str, styles_dir: str):
     logger.info(
         f"Building site from {Path(pages_dir).resolve()} to {Path(dist_dir).resolve()}..."
     )
-    build_site(pages_dir, dist_dir, styles_dir, settings)
+    build_site(working_dir, pages_dir, dist_dir, styles_dir, settings)
     logger.info("Build complete!")
 
 
 @cli.command()
+@click.option(
+    "--working-dir", "working_dir", "-w", default=".", help="Working directory"
+)
 @click.option(
     "--pages-dir", "pages_dir", "-p", default="pages", help="Path to pages directory"
 )
@@ -115,7 +130,14 @@ def build(pages_dir: str, dist_dir: str, styles_dir: str):
 )
 @click.option("--port", "-P", default=8000, help="Port to serve on")
 @click.option("--host", "-h", default="127.0.0.1", help="Host to bind to")
-def serve(pages_dir: str, dist_dir: str, styles_dir: str, port: int, host: str):
+def serve(
+    working_dir: str,
+    pages_dir: str,
+    dist_dir: str,
+    styles_dir: str,
+    port: int,
+    host: str,
+):
     """Serve the site and watch for changes, rebuilding when necessary."""
     import uvicorn
     from fastapi import FastAPI
@@ -128,7 +150,7 @@ def serve(pages_dir: str, dist_dir: str, styles_dir: str, port: int, host: str):
     logger.info(
         f"Building site from {Path(pages_dir).resolve()} to {Path(dist_dir).resolve()}..."
     )
-    build_site(pages_dir, dist_dir, styles_dir, settings)
+    build_site(working_dir, pages_dir, dist_dir, styles_dir, settings)
     logger.info("Initial build complete!")
 
     # Set up FastAPI app
@@ -169,7 +191,7 @@ def serve(pages_dir: str, dist_dir: str, styles_dir: str, port: int, host: str):
         return Response(content="Not Found", status_code=404)
 
     # Set up file watcher after initial build to avoid triggering on dist creation
-    event_handler = RebuildHandler(pages_dir, dist_dir, styles_dir)
+    event_handler = RebuildHandler(working_dir, pages_dir, dist_dir, styles_dir)
     observer = Observer()
     observer.schedule(event_handler, pages_dir, recursive=True)
     observer.schedule(event_handler, styles_dir, recursive=True)

@@ -13,8 +13,14 @@ from src.schema import Page
 logger = logging.getLogger(__name__)
 
 
-def load_pages(path: Union[str, Path] = "pages") -> Dict[str, Page]:
+def load_pages(
+    path: Union[str, Path] = "pages", working_dir: Union[str, Path] = "."
+) -> Dict[str, Page]:
     """Recursively load markdown pages from `path`, parse frontmatter and render HTML.
+
+    Args:
+        path: Directory containing markdown pages
+        working_dir: Working directory to use for plugin discovery in markdown rendering
 
     Returns a dict mapping POSIX relative paths (without extension) to `Page` models.
     Example: pages/de/index.md -> key 'de/index'
@@ -56,7 +62,7 @@ def load_pages(path: Union[str, Path] = "pages") -> Dict[str, Page]:
                 html = raw
             else:
                 metadata, content = parse_frontmatter(raw)
-                html = _render_markdown(content)
+                html = _render_markdown(content, working_dir=working_dir)
 
             rel_path = fp.relative_to(pages_dir).with_suffix("")
             key = rel_path.as_posix()
